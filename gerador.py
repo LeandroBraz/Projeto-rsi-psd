@@ -2,7 +2,6 @@ from kafka import KafkaProducer
 import json
 from time import sleep
 from datetime import datetime
-import lorem
 import time
 import csv
 
@@ -45,4 +44,4 @@ while True:
 
 for i in lista:
     producer.send('meu-topico-legal', i)
-    ime.sleep(10)
+    time.sleep(10)
