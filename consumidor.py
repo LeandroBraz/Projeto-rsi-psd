@@ -74,11 +74,10 @@ if __name__ == "__main__":
     # Split the lines into words
     words = lines.select(
         # explode turns each item in an array into a separate row
-        explode(
-            split(lines.value, ' ')
-        ).alias('word')
+        split(lines.value, ', ')[0].alias('Source'),
+        split(lines.value, ', ')[1].alias('Time'),
+        split(lines.value, ', ')[2].alias('ssid')
     )
-
     # Generate running word count
     wordCounts = words.groupBy('word').count()
 
