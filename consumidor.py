@@ -76,10 +76,11 @@ if __name__ == "__main__":
         # explode turns each item in an array into a separate row
         split(lines.value, ', ')[0].alias('Source'),
         split(lines.value, ', ')[1].alias('Time'),
-        split(lines.value, ', ')[2].alias('ssid')
+        split(lines.value, ', ')[2].alias('ssid'),
+        split(lines.value, ', ')[3].alias('marca')
     )
     # Generate running word count
-    wordCounts = words.groupBy('Source').count()
+    wordCounts = words.groupBy('marca').count()
 
     # Start running the query that prints the running counts to the console
     query = wordCounts\

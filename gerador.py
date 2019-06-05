@@ -11,7 +11,8 @@ def lercsv(nome_arq, lista):
     
     for i in lin:
         info = (i['Info']).split('=')
-        lista.append(i['Source'] + ', ' + i['Time'] + ', ' + info[-1])
+        marca = (i['Source'].split('_'))[0]
+        lista.append(i['Source'] + ', ' + i['Time'] + ', ' + info[-1] + ', ' + marca)
 
     arq.close()
  
