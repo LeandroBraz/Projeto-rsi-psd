@@ -71,8 +71,8 @@ if __name__ == "__main__":
         .load()\
         .selectExpr("CAST(value AS STRING)")
 
-    # Split the lines into words
-    words = lines.select(
+    # Cria a tabela de dados
+    dados = lines.select(
         # explode turns each item in an array into a separate row
         split(lines.value, ', ')[0].alias('Source'),
         split(lines.value, ', ')[1].alias('Time'),
@@ -80,12 +80,21 @@ if __name__ == "__main__":
         split(lines.value, ', ')[3].alias('marca')
     )
     # Generate running word count
-    wordCounts = words.groupBy('marca').count()
+    qtdPorMarca = dados.groupBy('marca').count()
+    a = dados.filter('ssid != "Wildcard (Broadcast)"').select('Source','Time')
 
     # Start running the query that prints the running counts to the console
-    query = wordCounts\
+    '''query = qtdPorMarca\
         .writeStream\
         .outputMode('complete')\
+        .format('console')\
+        .start()
+
+    query.awaitTermination()'''
+
+    query = a\
+        .writeStream\
+        .outputMode('append')\
         .format('console')\
         .start()
 
