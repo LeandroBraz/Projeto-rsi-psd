@@ -36,7 +36,7 @@
     `$ bin/spark-submit examples/src/main/python/sql/streaming/structured_kafka_wordcount.py \
     host1:port1,host2:port2 subscribe topic1,topic2`
     
-    bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3 /home/rsi-psd-vm/Documents/rsi-psd-codes/psd/pratica-05/structured_kafka_wordcount.py localhost:9092 subscribe meu-topico-legal
+    bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3 /home/rsi-psd-vm/Documents/Projeto-rsi-psd/consumidor.py localhost:9092 subscribe meu-topico
 """
 from __future__ import print_function
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     spark = SparkSession\
         .builder\
-        .appName("StructuredKafkaWordCount")\
+        .appName("consumidor")\
         .getOrCreate()
 
     # Create DataSet representing the stream of input lines from kafka
@@ -74,13 +74,13 @@ if __name__ == "__main__":
     # Split the lines into words
     words = lines.select(
         # explode turns each item in an array into a separate row
-        explode(
-            split(lines.value, ' ')
-        ).alias('word')
+        split(lines.value, ', ')[0].alias('Source'),
+        split(lines.value, ', ')[1].alias('Time'),
+        split(lines.value, ', ')[2].alias('ssid')
     )
 
     # Generate running word count
-    wordCounts = words.groupBy('word').count()
+    wordCounts = words.groupBy('Source').count()
 
     # Start running the query that prints the running counts to the console
     query = wordCounts\
