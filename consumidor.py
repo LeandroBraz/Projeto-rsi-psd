@@ -79,23 +79,39 @@ if __name__ == "__main__":
         split(lines.value, ', ')[2].alias('ssid'),
         split(lines.value, ', ')[3].alias('marca')
     )
-    # Generate running word count
-    qtdPorMarca = dados.groupBy('marca').count()
-    a = dados.filter('ssid != "Wildcard (Broadcast)"').select('Source','Time')
+    
+    directsProbes = dados.filter('ssid != "Wildcard (Broadcast)"')
 
-    # Start running the query that prints the running counts to the console
-    '''query = qtdPorMarca\
+    #contagem total probes broadcast
+    '''
+    broadcastProbes = dados.filter('ssid = "Wildcard (Broadcast)"').groupBy('ssid').count()
+    query = broadcastProbes\
         .writeStream\
         .outputMode('complete')\
         .format('console')\
         .start()
 
-    query.awaitTermination()'''
+    query.awaitTermination()
+    '''
+    #.groupBy('ssid').count()
+    #totalDirect = ssidProbes.groupBy().sum()
 
-    query = a\
+    # contagem dispositivos por marca
+    '''
+    qtdPorMarca = dados.groupBy('marca').count()
+    query = qtdPorMarca\
+        .writeStream\
+        .outputMode('complete')\
+        .format('console')\
+        .start()
+
+    query.awaitTermination()
+    '''
+
+    '''query = a\
         .writeStream\
         .outputMode('append')\
         .format('console')\
         .start()
 
-    query.awaitTermination()
+    query.awaitTermination()'''
