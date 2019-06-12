@@ -36,15 +36,28 @@
     `$ bin/spark-submit examples/src/main/python/sql/streaming/structured_kafka_wordcount.py \
     host1:port1,host2:port2 subscribe topic1,topic2`
     
-    bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3 /home/rsi-psd-vm/Documents/Projeto-rsi-psd/consumidor.py localhost:9092 subscribe meu-topico
+    bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3 /home/rsi-psd-vm/Documents/Projeto-rsi-psd/consumidor.py localhost:9092 subscribe meu-topico-legal
 """
 from __future__ import print_function
-
+import pandas as pd
 import sys
-
+import requests
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import explode
 from pyspark.sql.functions import split
+
+THINGSBOARD_HOST = '127.0.0.1'
+THINGSBOARD_PORT = '9090'
+ACCESS_TOKEN = 'HTpbdoIjtFRPgVcbJb1f'
+url = 'http://' + THINGSBOARD_HOST + ':' + THINGSBOARD_PORT + '/api/v1/' + ACCESS_TOKEN + '/telemetry'
+headers = {}
+headers['Content-Type'] = 'application/json'
+
+def processRow(row):
+    print(row)
+    row_data = { row.word : row.__getitem__("count")}
+    requests.post(url, json=row_data)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
@@ -59,7 +72,7 @@ if __name__ == "__main__":
 
     spark = SparkSession\
         .builder\
-        .appName("consumidor")\
+        .appName("StructuredKafkaWordCount")\
         .getOrCreate()
 
     # Create DataSet representing the stream of input lines from kafka
@@ -71,47 +84,29 @@ if __name__ == "__main__":
         .load()\
         .selectExpr("CAST(value AS STRING)")
 
-    # Cria a tabela de dados
-    dados = lines.select(
+    # Split the lines into words
+    words = lines.select(
         # explode turns each item in an array into a separate row
         split(lines.value, ', ')[0].alias('Source'),
         split(lines.value, ', ')[1].alias('Time'),
-        split(lines.value, ', ')[2].alias('ssid'),
-        split(lines.value, ', ')[3].alias('marca')
+        split(lines.value, ', ')[2].alias('ssid')
     )
+    # Generate running word count
+    wordCounts = words.groupBy('word').count()
+    wordCounts.sum()
     
-    directsProbes = dados.filter('ssid != "Wildcard (Broadcast)"')
 
-    #contagem total probes broadcast
-    '''
-    broadcastProbes = dados.filter('ssid = "Wildcard (Broadcast)"').groupBy('ssid').count()
-    query = broadcastProbes\
+    # Start running the query that prints the running counts to the console
+    # query = wordCounts\
+    #     .writeStream\
+    #     .outputMode('complete')\
+    #     .format('console')\
+    #     .start()
+    
+    query = wordCounts\
         .writeStream\
         .outputMode('complete')\
-        .format('console')\
+        .foreach(processRow)\
         .start()
 
     query.awaitTermination()
-    '''
-    #.groupBy('ssid').count()
-    #totalDirect = ssidProbes.groupBy().sum()
-
-    # contagem dispositivos por marca
-    '''
-    qtdPorMarca = dados.groupBy('marca').count()
-    query = qtdPorMarca\
-        .writeStream\
-        .outputMode('complete')\
-        .format('console')\
-        .start()
-
-    query.awaitTermination()
-    '''
-
-    '''query = a\
-        .writeStream\
-        .outputMode('append')\
-        .format('console')\
-        .start()
-
-    query.awaitTermination()'''
