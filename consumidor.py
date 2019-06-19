@@ -36,10 +36,10 @@
     `$ bin/spark-submit examples/src/main/python/sql/streaming/structured_kafka_wordcount.py \
     host1:port1,host2:port2 subscribe topic1,topic2`
     
-    bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3 /home/rsi-psd-vm/Documents/Projeto-rsi-psd/consumidor.py localhost:9092 subscribe meu-topico-legal
+    bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3 /home/rsi-psd-vm/Documents/Projeto-rsi-psd/consumidor.py localhost:9092 subscribe meu-topico
 """
 from __future__ import print_function
-import pandas as pd
+
 import sys
 import requests
 from pyspark.sql import SparkSession
@@ -48,14 +48,17 @@ from pyspark.sql.functions import split
 
 THINGSBOARD_HOST = '127.0.0.1'
 THINGSBOARD_PORT = '9090'
-ACCESS_TOKEN = 'HTpbdoIjtFRPgVcbJb1f'
+ACCESS_TOKEN = 'XBi9DdNmG2wgUMXSkNzG'
 url = 'http://' + THINGSBOARD_HOST + ':' + THINGSBOARD_PORT + '/api/v1/' + ACCESS_TOKEN + '/telemetry'
 headers = {}
 headers['Content-Type'] = 'application/json'
 
+
+
+
 def processRow(row):
     print(row)
-    row_data = { row.word : row.__getitem__("count")}
+    row_data = { row.ssid : row.__getitem__("count")}
     requests.post(url, json=row_data)
 
 
@@ -89,11 +92,12 @@ if __name__ == "__main__":
         # explode turns each item in an array into a separate row
         split(lines.value, ', ')[0].alias('Source'),
         split(lines.value, ', ')[1].alias('Time'),
-        split(lines.value, ', ')[2].alias('ssid')
+        split(lines.value, ', ')[2].alias('ssid'),
+        split(lines.value, ', ')[3].alias('marca')
     )
     # Generate running word count
-    wordCounts = words.groupBy('word').count()
-    wordCounts.sum()
+    wordCounts = words.groupBy('ssid').count()
+    #wordCounts.sum()
     
 
     # Start running the query that prints the running counts to the console
@@ -110,3 +114,4 @@ if __name__ == "__main__":
         .start()
 
     query.awaitTermination()
+    
