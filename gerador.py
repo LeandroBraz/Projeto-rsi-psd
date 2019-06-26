@@ -23,7 +23,7 @@ lista = []
 
 lercsv('pcap0', lista)
 
-'''lercsv('pcap1', lista)
+lercsv('pcap1', lista)
 
 lercsv('pcap2', lista)
 
@@ -33,11 +33,10 @@ lercsv('pcap4', lista)
 
 lercsv('pcap5', lista)
 
-lercsv('pcap6', lista)'''
+lercsv('pcap6', lista)
 
 # Call the producer.send method with a producer-record
 print("ctrl+c to stop...")
 
 for i in lista:
     producer.send('meu-topico', i)
-    time.sleep(3)
